@@ -5,13 +5,13 @@ import BurgerIngredient from './BurgerIngredient/BurgerIngredient';
 
 const burger = (props) => { //wrapper component around all of the ingredients
     
-    let transformedIngredients = Object.keys(props.ingredients)
+    let transformedIngredients = Object.keys(props.ingredients) //returns an array of the keys - string ingredient names (not included: values)
     .map(igKey => {
-        return [...Array(props.ingredients[igKey])].map((_, i) => {
-            return <BurgerIngredient key={igKey + i} type={igKey} />;
-        });
+        return [...Array(props.ingredients[igKey])].map((_, i) => { //transforms string value into an array, length of array based on props.ingredients[igKey] value
+            return <BurgerIngredient key={igKey + i} type={igKey} />;   //previous array mapped to return appropriate amount of BurgerIngredient components
+        }); //pretty much turns an object of key value pairs into an array of BurgerIngredients
     })
-    .reduce((arr, el) => {  //flattens array
+    .reduce((arr, el) => {  //flattens array, either empty or contains JSX elements
         return arr.concat(el)
     }, []);
 
