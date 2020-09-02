@@ -3,6 +3,8 @@ import React, { Component } from 'react';
 import Aux from '../../hoc/Auxiliary';
 import Burger from '../../components/Burger/Burger';
 import BuildControls from '../../components/Burger/BuildControls/BuildControls';
+import Modal from '../../components/UI/Modal/Modal';
+import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
 
 const INGREDIENT_PRICES = {
     salad: 0.5,
@@ -25,7 +27,27 @@ class BurgerBuilder extends Component{
             cheese: 0,
             meat: 0
         },
-        totalPrice: 4   //base price
+        totalPrice: 4,   //base price
+        purchaseable: false, //will become true when at least one ingredient added
+        purchasing: false   //keep track of when 'Order Now' button is clicked
+    }
+
+    purchaseHandler = () => {
+        this.setState({purchasing: true});
+    }
+
+    updatePurchaseState = (ingredients) => {    //accept updated ingredients
+        // const ingredients = {
+        //     ...this.state.ingredients    Don't have to copy from state bc accepting updated ingredients
+        // };
+        const sum = Object.keys(ingredients)//creates an array of string entries
+        .map(igKey => {
+            return ingredients[igKey]    //the amount of each 
+        })
+        .reduce((sum, el) => {  //to turn into a single number, the sum of all ingredients 
+            return sum + el;
+        }, 0);     
+        this.setState({purchaseable: sum > 0});
     }
 
     addIngredientHandler = (type) => {
@@ -39,6 +61,7 @@ class BurgerBuilder extends Component{
         const oldPrice = this.state.totalPrice;
         const newPrice = oldPrice + priceAddition;
         this.setState({totalPrice: newPrice, ingredients: updatedIngredients});
+        this.updatePurchaseState(updatedIngredients);   //pass updated ingredients
     }
 
     removeIngredientHandler = (type) => {
@@ -53,6 +76,15 @@ class BurgerBuilder extends Component{
         const oldPrice = this.state.totalPrice;
         const newPrice = oldPrice - priceDeduction;
         this.setState({totalPrice: newPrice, ingredients: updatedIngredients});
+        this.updatePurchaseState(updatedIngredients);
+    }
+
+    purchaseCancelHandler = () => {
+        this.setState({purchasing: false});
+    }
+
+    purchaseContinueHandler = () => {
+        alert('You continue!');
     }
 
     //class based components NEED render method
@@ -67,12 +99,21 @@ class BurgerBuilder extends Component{
         //return JSX code
         return (
             <Aux>
+                <Modal show={this.state.purchasing} modalClosed={this.purchaseCancelHandler}>
+                    <OrderSummary 
+                        ingredients={this.state.ingredients} 
+                        purchaseCancelled={this.purchaseCancelHandler} 
+                        purchaseContinued={this.purchaseContinueHandler}
+                        price={this.state.totalPrice}/>
+                </Modal>
                 <Burger ingredients={this.state.ingredients}/>
                 <BuildControls 
                     ingredientAdded={this.addIngredientHandler} //calls addIngredientHandler
                     ingredientsRemoved={this.removeIngredientHandler}
                     disabled={disabledInfo} //disabled less button if nothing added
+                    purchaseable={this.state.purchaseable}
                     price={this.state.totalPrice}
+                    ordered={this.purchaseHandler}
                 />
             </Aux>
         );
